@@ -9,7 +9,7 @@ from core.models import Tag
 
 from recipe.serializers import TagSerializer
 
-TAGS_URL = reverse('recipe:tag-list')
+TAGS_URL = reverse("recipe:tag-list")
 
 
 class PublicTagsApiTests(TestCase):
@@ -31,8 +31,7 @@ class PrivateTagsApiTests(TestCase):
 
     def setUp(self) -> None:
         self.user = get_user_model().objects.create_user(
-            'test@londom.com',
-            'passwordtest'
+            "test@londom.com", "passwordtest"
         )
         self.client = APIClient()
         self.client.force_authenticate(self.user)
@@ -44,7 +43,7 @@ class PrivateTagsApiTests(TestCase):
 
         res = self.client.get(TAGS_URL)
 
-        tags = Tag.objects.all().order_by('-name')
+        tags = Tag.objects.all().order_by("-name")
         serializer = TagSerializer(tags, many=True)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -52,15 +51,31 @@ class PrivateTagsApiTests(TestCase):
 
     def test_tags_limited_to_user(self):
         """Test that tags returned are for the authenticated user"""
-        user2 = get_user_model().objects.create_user(
-            'otheruser@londom.com',
-            'testpass'
-        )
-        Tag.objects.create(user=user2, name='Fruity')
+        user2 = get_user_model().objects.create_user("otheruser@londom.com", "testpass")
+        Tag.objects.create(user=user2, name="Fruity")
         tag = Tag.objects.create(user=self.user, name="Comfort Food")
 
         res = self.client.get(TAGS_URL)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
-        self.assertEqual(tag.name, res.data[0]['name'])
+        self.assertEqual(tag.name, res.data[0]["name"])
+
+    def test_create_tag_successful(self):
+        """Test creating a new tag"""
+        payload = {"name": "Test tag"}
+        self.client.post(TAGS_URL, payload)
+
+        exists = Tag.objects.filter(
+            user=self.user,
+            name=payload["name"],
+        ).exists()
+        self.assertTrue(exists)
+
+    def test_create_tag_invalid(self):
+        """Test creating a new tag with invalid payload"""
+
+        payload = {"name": ""}
+        res = self.client.post(TAGS_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
