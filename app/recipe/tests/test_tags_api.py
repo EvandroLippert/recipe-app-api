@@ -51,10 +51,7 @@ class PrivateTagsApiTests(TestCase):
 
     def test_tags_limited_to_user(self):
         """Test that tags returned are for the authenticated user"""
-        user2 = get_user_model().objects.create_user(
-            "otheruser@londom.com",
-            "testpass"
-        )
+        user2 = get_user_model().objects.create_user("otheruser@londom.com", "testpass")
         Tag.objects.create(user=user2, name="Fruity")
         tag = Tag.objects.create(user=self.user, name="Comfort Food")
 
