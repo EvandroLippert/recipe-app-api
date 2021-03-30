@@ -10,7 +10,7 @@ from core.models import Ingredient
 from recipe.serializers import IngredientSerializer
 
 
-INGREDIENTS_URL = reverse("recipe:ingredients-list")
+INGREDIENTS_URL = reverse("recipe:ingredient-list")
 
 
 class PublicIngredientsApiTests(TestCase):
@@ -33,7 +33,7 @@ class PrivateIngredientsApiTests(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            username="test@londom.com", password="testpass"
+            email="test@londom.com", password="testpass"
         )
         self.client.force_authenticate(self.user)
 
@@ -55,7 +55,7 @@ class PrivateIngredientsApiTests(TestCase):
         """Test that the ingredients for the authenticated user are returned"""
 
         user2 = get_user_model().objects.create_user(
-            username="otheruser@gmail.com", password="testcase"
+            email="otheruser@gmail.com", password="testcase"
         )
         self.client.force_authenticate(user2)
 
@@ -63,10 +63,10 @@ class PrivateIngredientsApiTests(TestCase):
         Ingredient.objects.create(user=self.user, name="Rice")
 
         ingredients = Ingredient.objects.filter(user=user2).order_by("-name")
-        serializer = IngredientSerializer(ingredients)
+        serializer = IngredientSerializer(ingredients, many=True)
 
         res = self.client.get(INGREDIENTS_URL)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
-        self.assertEqual(res.data[0]["name"], serializer.name)
+        self.assertEqual(res.data[0]["name"], serializer.data[0]['name'])
