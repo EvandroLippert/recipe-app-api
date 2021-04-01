@@ -60,3 +60,23 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Recipe(models.Model):
+    """Recipe object"""
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    time_minutes = models.IntegerField()
+    price = models.DecimalField(max_digits=5, decimal_places=2)
+    link = models.CharField(max_length=255, blank=True)
+    # Os fields abaixos permitem que várias receitas usem vários ingredientes e tags, isso é \
+    # o mesmo ingrediente e a mesma tag podem ser atribuídos a diversas receitas o que não \
+    # seria possível no OneToMany (ForeignKey), pois o ingrediente só poderia ser atribuído \
+    # a uma receita;
+    # O parâmetro inserido dentro do ManyToManyField é o nome da classe que será relacionada
+    ingredients = models.ManyToManyField("Ingredient")
+    tags = models.ManyToManyField("Tag")
+
+    def __str__(self):
+        return self.title
