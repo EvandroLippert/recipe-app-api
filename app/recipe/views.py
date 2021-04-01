@@ -42,8 +42,6 @@ class IngredientViewSet(BaseRecipeAttrViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Manage recipes in the database"""
 
-    serializer_class = serializers.RecipeSerializer
-    queryset = Recipe.objects.all()
     queryset = Recipe.objects.all()
     serializer_class = serializers.RecipeSerializer
     authentication_classes = (TokenAuthentication,)
@@ -59,3 +57,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.action == "retrieve":
             return serializers.RecipeDetailSerializer
         return self.serializer_class
+
+    def perform_create(self, serializer):
+        """Create a new object"""
+
+        serializer.save(user=self.request.user)
